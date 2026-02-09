@@ -1,0 +1,20 @@
+name: Update DeepWiki
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deepwiki-update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Trigger DeepWiki reindex
+        run: |
+          curl -X POST "https://deepwiki.com/api/index" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "repo_url": "https://github.com/thinhtranvandanang/aiLearn"
+            }'
