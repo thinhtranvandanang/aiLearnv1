@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext.tsx';
 import { ProtectedRoute } from './components/ProtectedRoute.tsx';
@@ -74,12 +74,33 @@ const AppRoutes: React.FC = () => {
   );
 };
 
-const App: React.FC = () => (
-  <AuthProvider>
-    <BrowserRouter>
-      <AppRoutes />
-    </BrowserRouter>
-  </AuthProvider>
-);
+const App: React.FC = () => {
+  // Xử lý token từ URL khi app khởi động
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("token");
+    const error = params.get("error");
+
+    if (token) {
+      localStorage.setItem("edunexia_token", token);
+      // Xóa token khỏi URL để tránh hiển thị
+      window.history.replaceState({}, "", "/");
+    }
+
+    if (error) {
+      console.error("OAuth Error:", error);
+      // Xóa error khỏi URL
+      window.history.replaceState({}, "", "/");
+    }
+  }, []);
+
+  return (
+    <AuthProvider>
+      <BrowserRouter>
+        <AppRoutes />
+      </BrowserRouter>
+    </AuthProvider>
+  );
+};
 
 export default App;
