@@ -3,8 +3,9 @@ import React from 'react';
 
 export const GoogleLoginButton: React.FC = () => {
   const handleGoogleLogin = () => {
-    // Điều hướng tới API Google của Backend
-    window.location.href = 'http://localhost:8000/api/v1/auth/google/login';
+    // Điều hướng tới API Google của Backend (dùng environment variable)
+    const apiUrl = (import.meta as any).env.VITE_API_URL || 'http://localhost:8000/api/v1';
+    window.location.href = `${apiUrl}/auth/google/login`;
   };
 
   return (
