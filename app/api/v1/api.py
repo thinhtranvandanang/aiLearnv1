@@ -3,6 +3,20 @@ from app.api.v1.endpoints import auth, tests, submit, results, history
 
 api_router = APIRouter()
 
+@api_router.get("/")
+def api_root():
+    return {
+        "message": "EduNexia API v1",
+        "version": "1.0.0",
+        "endpoints": {
+            "auth": "/auth",
+            "google_oauth": "/auth/google",
+            "practice_tests": "/practice-tests", 
+            "submissions": "/submissions",
+            "learning_history": "/students"
+        }
+    }
+
 # Đăng nhập truyền thống: /api/v1/auth/student/login
 api_router.include_router(auth.router, prefix="/auth/student", tags=["Authentication"])
 
