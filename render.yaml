@@ -8,6 +8,11 @@ services:
     healthCheckPath: /health
     buildCommand: pip install -r requirements.txt && python -m alembic upgrade head
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    routes:
+      # Rewrite /auth/* → /api/v1/auth/*
+      - type: rewrite
+        source: /auth/(.*)
+        destination: /api/v1/auth/$1
     envVars:
       - key: DATABASE_URL
         value: postgresql://edunexia_dev_mj3r_user:VaWn6GsC6Bu3UooH3Kz3aYcP2uQuPTgP@dpg-d65cp9u3jp1c73an5sg0-a/edunexia_dev_mj3r
