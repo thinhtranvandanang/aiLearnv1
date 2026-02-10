@@ -4,6 +4,7 @@ from fastapi.responses import JSONResponse
 from app.api.v1.api import api_router
 from app.core.config import settings
 from app.core.exceptions import EduNexiaException
+from app.db.migrate import run_migrations
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -32,6 +33,13 @@ async def edunexia_exception_handler(request: Request, exc: EduNexiaException):
         status_code=exc.status_code,
         content={"status": "error", "message": exc.detail},
     )
+
+# Auto-run migrations on startup
+@app.on_event("startup")
+async def startup_event():
+    """Run database migrations automatically when app starts."""
+    if settings.ENVIRONMENT == "production":
+        run_migrations()
 
 # Routers
 app.include_router(api_router, prefix=settings.API_V1_STR)
