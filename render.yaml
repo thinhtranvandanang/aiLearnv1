@@ -24,7 +24,7 @@ services:
       - key: GOOGLE_REDIRECT_URI
         value: https://ailearnv1-1backend1.onrender.com/api/v1/auth/google/callback
 
-  # Frontend React
+  # Frontend React (monorepo - build from root)
   - type: web
     name: ailearnv1-1
     env: static
