@@ -1,7 +1,8 @@
 
 import axios from 'axios';
 
-const BASE_URL = 'http://localhost:8000/api/v1';
+// Use environment variable for API URL, fallback to localhost for development
+const BASE_URL = import.meta.env.VITE_API_URL || 'https://edunexia-api.onrender.com/api/v1/auth/google/login';
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,
