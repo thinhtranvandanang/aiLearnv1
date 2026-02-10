@@ -16,19 +16,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "postgresql://user:password@localhost:5432/edunexia"
 
     # CORS
-    BACKEND_CORS_ORIGINS: List[str] = []
-
-    @field_validator("BACKEND_CORS_ORIGINS", mode="before")
-    @classmethod
-    def assemble_cors_origins(cls, v):
-        if v is None:
-            return ["https://ailearnv1-1.onrender.com"]
-        if isinstance(v, str):
-            # Tách chuỗi bằng dấu phẩy và loại bỏ khoảng trắng + dấu / ở cuối
-            return [i.strip().rstrip("/") for i in v.split(",") if i.strip()]
-        elif isinstance(v, list):
-            return [str(i).strip().rstrip("/") for i in v]
-        return []
+    BACKEND_CORS_ORIGINS: List[str] = ["https://ailearnv1-1.onrender.com"]
 
     # Google OAuth / Frontend
     GOOGLE_CLIENT_ID: Optional[str] = None
