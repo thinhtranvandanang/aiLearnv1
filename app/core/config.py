@@ -17,7 +17,6 @@ class Settings(BaseSettings):
 
     # CORS
     BACKEND_CORS_ORIGINS: List[str] = ["https://ailearnv1-1.onrender.com"]
-    ALLOWED_ORIGINS: Optional[str] = None
 
     @field_validator("BACKEND_CORS_ORIGINS", mode="before")
     @classmethod
@@ -28,14 +27,6 @@ class Settings(BaseSettings):
         elif isinstance(v, list):
             return [str(i).strip().rstrip("/") for i in v]
         return []
-    
-    @model_validator(mode="after")
-    def sync_cors_origins(self) -> "Settings":
-        """Nếu có ALLOWED_ORIGINS trong .env, nạp vào BACKEND_CORS_ORIGINS."""
-        if self.ALLOWED_ORIGINS and not self.BACKEND_CORS_ORIGINS:
-            origins = [i.strip().rstrip("/") for i in self.ALLOWED_ORIGINS.split(",") if i.strip()]
-            self.BACKEND_CORS_ORIGINS = origins
-        return self
 
     # Google OAuth / Frontend
     GOOGLE_CLIENT_ID: Optional[str] = None
