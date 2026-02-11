@@ -83,8 +83,9 @@ const App: React.FC = () => {
 
     if (token) {
       localStorage.setItem("edunexia_token", token);
-      // Xóa token khỏi URL để tránh hiển thị
-      window.history.replaceState({}, "", "/");
+      // Redirect về root để AuthContext xử lý
+      window.location.href = "/";
+      return; // Ngăn chạy tiếp
     }
 
     if (error) {
