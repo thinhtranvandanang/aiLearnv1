@@ -29,7 +29,7 @@ def login(request_data: LoginRequest, db: Session = Depends(deps.get_db)):
 @router.post("/register")
 def register(user_in: UserCreate, db: Session = Depends(deps.get_db)):
     result = auth_service.register_student(db, user_in=user_in)
-    return APIResponse.success(data=result, message="Đăng ký tài khoản thành công")
+    return APIResponse.success(data=result, message="ÄÄƒng kÃ½ tÃ i khoáº£n thÃ nh cÃ´ng")
 
 @router.get("/me", response_model=APIResponse[UserOut])
 def get_me(current_user: User = Depends(deps.get_current_user)):
@@ -55,10 +55,10 @@ async def google_callback(code: str, error: str | None = None):
     
     if error:
         logger.error(f"Google OAuth Provider Error: {error}")
-        return RedirectResponse(f"{frontend_url}/login?error=access_denied")
+        return RedirectResponse(f"{frontend_url}/?error=access_denied")  # ← FIX: redirect về root
 
     if not code:
-        return RedirectResponse(f"{frontend_url}/login?error=missing_code")
+        return RedirectResponse(f"{frontend_url}/?error=missing_code")  # ← FIX: redirect về root
 
     async with httpx.AsyncClient(timeout=15.0) as client:
         try:
@@ -76,7 +76,7 @@ async def google_callback(code: str, error: str | None = None):
             
             if token_resp.status_code != 200:
                 logger.error(f"Google Token Exchange Failed: {token_resp.text}")
-                return RedirectResponse(f"{frontend_url}/login?error=token_failed")
+                return RedirectResponse(f"{frontend_url}/?error=token_failed")  # ← FIX
             
             token_data = token_resp.json()
             access_token = token_data.get("access_token")
@@ -89,7 +89,7 @@ async def google_callback(code: str, error: str | None = None):
             
             if userinfo_resp.status_code != 200:
                 logger.error(f"Google UserInfo Fetch Failed: {userinfo_resp.text}")
-                return RedirectResponse(f"{frontend_url}/login?error=user_info_failed")
+                return RedirectResponse(f"{frontend_url}/?error=user_info_failed")  # ← FIX
                 
             profile = userinfo_resp.json()
             email = (profile.get("email") or "").strip().lower()
@@ -98,7 +98,7 @@ async def google_callback(code: str, error: str | None = None):
 
             if not email:
                 logger.error("Google profile missing email")
-                return RedirectResponse(f"{frontend_url}/login?error=email_missing")
+                return RedirectResponse(f"{frontend_url}/?error=email_missing")  # ← FIX
 
             # 3. Tạo một Database Session mới ngay sau khi thực hiện các lệnh await
             # Điều này ngăn lỗi kết nối bị hết hạn hoặc không tồn tại do thời gian chờ HTTP.
@@ -112,15 +112,15 @@ async def google_callback(code: str, error: str | None = None):
                 )
                 jwt_token = create_access_token(subject=user.id)
                 logger.info(f"Google login successful for: {email}")
-                # Redirect về Frontend kèm Token JWT
-                return RedirectResponse(f"{frontend_url}/login?token={jwt_token}")
+                # ✅ FIX: Redirect về ROOT (/) thay vì /login để App.tsx xử lý token
+                return RedirectResponse(f"{frontend_url}/?token={jwt_token}")
             except Exception as db_e:
                 logger.exception(f"Database error during Google callback for {email}")
                 db.rollback()
-                return RedirectResponse(f"{frontend_url}/login?error=callback_failed")
+                return RedirectResponse(f"{frontend_url}/?error=callback_failed")  # ← FIX
             finally:
                 db.close()
 
         except Exception as e:
             logger.exception("Unexpected exception in Google callback flow")
-            return RedirectResponse(f"{frontend_url}/login?error=callback_failed")
+            return RedirectResponse(f"{frontend_url}/?error=callback_failed")  # ← FIX

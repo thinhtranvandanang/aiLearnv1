@@ -41,8 +41,8 @@ async def google_login():
             status_code=501,
             detail="Google OAuth chưa được cấu hình. Thêm GOOGLE_CLIENT_ID và GOOGLE_CLIENT_SECRET vào .env",
         )
-    # Callback URL - backend nhận code từ Google
-    redirect_uri = f"http://localhost:8000/api/v1/auth/google/callback"
+    # ✅ FIX: Dùng settings.GOOGLE_REDIRECT_URI để đồng bộ với Google Console
+    redirect_uri = settings.GOOGLE_REDIRECT_URI or "http://localhost:8000/api/v1/auth/google/callback"
     url = get_google_login_url(redirect_uri)
     return RedirectResponse(url=url)
 
@@ -53,10 +53,13 @@ async def google_callback(
     error: str | None = None,
 ):
     """Xử lý callback từ Google, đổi code lấy token, tạo JWT, redirect về frontend."""
+    frontend_url = settings.FRONTEND_URL.rstrip("/")
+    
     if error:
         # User từ chối hoặc có lỗi
+        # ✅ FIX: Redirect về root (/) thay vì /login
         return RedirectResponse(
-            url=f"{settings.FRONTEND_URL}/login?error={error}",
+            url=f"{frontend_url}/?error={error}",
             status_code=302,
         )
     if not code:
@@ -65,8 +68,8 @@ async def google_callback(
     if not settings.GOOGLE_CLIENT_ID or not settings.GOOGLE_CLIENT_SECRET:
         raise HTTPException(status_code=501, detail="Google OAuth chưa được cấu hình")
 
-    redirect_uri = "http://localhost:8000/api/v1/auth/google/callback"
-    frontend_url = settings.FRONTEND_URL.rstrip("/")
+    # ✅ FIX: Dùng settings.GOOGLE_REDIRECT_URI
+    redirect_uri = settings.GOOGLE_REDIRECT_URI or "http://localhost:8000/api/v1/auth/google/callback"
 
     try:
         async with httpx.AsyncClient() as client:
@@ -89,14 +92,14 @@ async def google_callback(
                     token_resp.text[:500],
                 )
                 return RedirectResponse(
-                    url=f"{frontend_url}/login?error=token_exchange_failed",
+                    url=f"{frontend_url}/?error=token_exchange_failed",  # ← FIX
                     status_code=302,
                 )
             tokens = token_resp.json()
             access_token_google = tokens.get("access_token")
             if not access_token_google:
                 return RedirectResponse(
-                    url=f"{frontend_url}/login?error=no_access_token",
+                    url=f"{frontend_url}/?error=no_access_token",  # ← FIX
                     status_code=302,
                 )
 
@@ -107,14 +110,14 @@ async def google_callback(
             )
             if userinfo_resp.status_code != 200:
                 return RedirectResponse(
-                    url=f"{frontend_url}/login?error=userinfo_failed",
+                    url=f"{frontend_url}/?error=userinfo_failed",  # ← FIX
                     status_code=302,
                 )
             google_user = userinfo_resp.json()
             email = (google_user.get("email") or "").strip().lower()
             if not email:
                 return RedirectResponse(
-                    url=f"{frontend_url}/login?error=no_email",
+                    url=f"{frontend_url}/?error=no_email",  # ← FIX
                     status_code=302,
                 )
             full_name = google_user.get("name", "") or email.split("@")[0]
@@ -127,8 +130,9 @@ async def google_callback(
                 db, email=email, full_name=full_name, google_id=google_id
             )
             jwt_token = create_access_token(subject=user.id)
+            # ✅ FIX: Redirect về ROOT (/) thay vì /login
             return RedirectResponse(
-                url=f"{frontend_url}/login?token={jwt_token}",
+                url=f"{frontend_url}/?token={jwt_token}",
                 status_code=302,
             )
         finally:
@@ -136,6 +140,6 @@ async def google_callback(
     except Exception as e:
         logger.exception("Google OAuth callback error: %s", e)
         return RedirectResponse(
-            url=f"{frontend_url}/login?error=callback_failed",
+            url=f"{frontend_url}/?error=callback_failed",  # ← FIX
             status_code=302,
         )
