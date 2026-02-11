@@ -46,6 +46,11 @@ def google_login():
         "access_type": "offline",
         "prompt": "select_account"
     }
+    
+    # Debug: Log redirect_uri
+    logger.info(f"Google OAuth redirect_uri: {settings.GOOGLE_REDIRECT_URI}")
+    logger.info(f"Google OAuth client_id: {settings.GOOGLE_CLIENT_ID}")
+    
     query_params = "&".join([f"{k}={v}" for k, v in params.items()])
     return RedirectResponse(f"{base_url}?{query_params}")
 
